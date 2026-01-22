@@ -1,0 +1,22 @@
+{
+  "name": "bund",
+  "module": "src/index.ts",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "bund": "src/index.ts"
+  },
+  "scripts": {
+    "start": "bun run src/index.ts",
+    "dev": "bun --watch run src/index.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.71.2"
+  }
+}
