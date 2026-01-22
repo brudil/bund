@@ -8,7 +8,9 @@
   },
   "scripts": {
     "start": "bun run src/index.ts",
-    "dev": "bun --watch run src/index.ts"
+    "server": "bun run src/server/index.ts",
+    "client": "bun run src/client/index.ts",
+    "dev": "bun --watch run src/server/index.ts"
   },
   "devDependencies": {
     "@types/bun": "latest"

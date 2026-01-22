@@ -7,16 +7,31 @@ Instead of tools, the AI responds with executable JavaScript/TypeScript code tha
 ## Running
 
 ```sh
-bun start        # run the agent
-bun dev          # run with watch mode
+bun start        # run server + client together
+bun run server   # run server only
+bun run client   # run client only (connect to running server)
+bun dev          # run server with watch mode
 ```
 
 ## Architecture
 
-- `src/agent.ts` - Claude integration with streaming
-- `src/repl.ts` - Code execution with context persistence
-- `src/ui.ts` - Terminal UI helpers
-- `src/index.ts` - Main loop
+Client-server over Unix socket IPC (`/tmp/bund.sock`).
+
+```
+src/
+├── index.ts           # Launcher (starts server + client)
+├── shared/
+│   └── protocol.ts    # IPC message types
+├── server/
+│   ├── index.ts       # Socket server
+│   ├── agent.ts       # Claude API streaming
+│   └── repl.ts        # Code execution
+└── client/
+    ├── index.ts       # Socket client
+    └── ui.ts          # Terminal UI
+```
+
+The server handles Claude calls and code execution. The client handles terminal UI. IPC keeps the UI responsive while the agent works.
 
 ---
 
