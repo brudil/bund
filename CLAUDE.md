@@ -19,19 +19,24 @@ Client-server over Unix socket IPC (`/tmp/bund.sock`).
 
 ```
 src/
-├── index.ts           # Launcher (starts server + client)
+├── index.ts              # Launcher (starts server + client)
 ├── shared/
-│   └── protocol.ts    # IPC message types
+│   └── protocol.ts       # IPC message types
 ├── server/
-│   ├── index.ts       # Socket server
-│   ├── agent.ts       # Claude API streaming
-│   └── repl.ts        # Code execution
+│   ├── index.ts          # Socket server
+│   ├── agent.ts          # Claude API streaming
+│   └── repl.ts           # Code execution
 └── client/
-    ├── index.ts       # Socket client
-    └── ui.ts          # Terminal UI
+    ├── index.tsx         # Ink render entry
+    ├── components/
+    │   ├── App.tsx       # Main app with state
+    │   ├── MessageList.tsx
+    │   └── InputArea.tsx # Bottom input
+    └── hooks/
+        └── useSocket.ts  # IPC connection hook
 ```
 
-The server handles Claude calls and code execution. The client handles terminal UI. IPC keeps the UI responsive while the agent works.
+The server handles Claude calls and code execution. The client uses Ink (React for CLI) for a Claude Code-style interface with a fixed input area at the bottom.
 
 ---
 

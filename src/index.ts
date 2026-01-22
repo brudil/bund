@@ -7,7 +7,7 @@ import { existsSync } from "fs";
 import { SOCKET_PATH } from "./shared/protocol";
 
 const serverPath = new URL("./server/index.ts", import.meta.url).pathname;
-const clientPath = new URL("./client/index.ts", import.meta.url).pathname;
+const clientPath = new URL("./client/index.tsx", import.meta.url).pathname;
 
 // Start server in background
 const server = spawn(["bun", "run", serverPath], {

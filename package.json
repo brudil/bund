@@ -9,16 +9,20 @@
   "scripts": {
     "start": "bun run src/index.ts",
     "server": "bun run src/server/index.ts",
-    "client": "bun run src/client/index.ts",
+    "client": "bun run src/client/index.tsx",
     "dev": "bun --watch run src/server/index.ts"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/react": "^19.2.9"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.71.2"
+    "@anthropic-ai/sdk": "^0.71.2",
+    "ink": "^6.6.0",
+    "ink-text-input": "^6.0.0",
+    "react": "^19.2.3"
   }
 }
