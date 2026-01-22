@@ -8,14 +8,23 @@ interface Props {
   onSubmit: (value: string) => void;
   disabled?: boolean;
   placeholder?: string;
+  contextTokens?: number | null;
 }
 
-export function InputArea({
+function formatTokens(count: number): string {
+  if (count >= 1000) {
+    return `${(count / 1000).toFixed(1)}k`;
+  }
+  return count.toString();
+}
+
+export const InputArea = React.memo(function InputArea({
   value,
   onChange,
   onSubmit,
   disabled,
   placeholder,
+  contextTokens,
 }: Props) {
   useInput(
     (input, key) => {
@@ -27,22 +36,25 @@ export function InputArea({
   );
 
   return (
-    <Box>
-      <Text color={disabled ? "gray" : "cyan"} bold>
-        {">"}{" "}
-      </Text>
-      {disabled ? (
-        <Text color="gray" dimColor>
-          {placeholder}
+    <Box flexDirection="column" marginTop={1} paddingX={1}>
+      <Box>
+        <Text color={disabled ? "gray" : "blue"} bold>
+          ❯{" "}
         </Text>
-      ) : (
-        <TextInput
-          value={value}
-          onChange={onChange}
-          placeholder={placeholder}
-          showCursor
-        />
-      )}
+        {disabled ? (
+          <Text dimColor>{placeholder}</Text>
+        ) : (
+          <TextInput
+            value={value}
+            onChange={onChange}
+            placeholder={placeholder}
+            showCursor
+          />
+        )}
+        {contextTokens != null && (
+          <Text dimColor> ({formatTokens(contextTokens)} tokens)</Text>
+        )}
+      </Box>
     </Box>
   );
-}
+});

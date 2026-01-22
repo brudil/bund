@@ -1,67 +1,70 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Box, Text, useApp, useInput, useStdout } from "ink";
+import React, { useState, useCallback, useRef } from "react";
+import { Box, Text, useApp, useInput } from "ink";
 import { InputArea } from "./InputArea.js";
 import { MessageList } from "./MessageList.js";
 import { useSocket } from "../hooks/useSocket.js";
+import { Spinner } from "./Spinner.js";
 
 export interface Message {
   id: string;
-  type: "user" | "code" | "result" | "error" | "system";
+  type: "user" | "result" | "error" | "system" | "call";
   content: string;
   streaming?: boolean;
 }
 
 export function App() {
   const { exit } = useApp();
-  const { stdout } = useStdout();
+  const idCounter = useRef(0);
+  const nextId = (prefix: string) => `${prefix}-${++idCounter.current}`;
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
       type: "system",
-      content: "bund - a repl agent that thinks in code",
+      content: "a repl agent that thinks in code",
     },
   ]);
   const [inputValue, setInputValue] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [connected, setConnected] = useState(false);
-  const [streamingCode, setStreamingCode] = useState("");
-
-  const terminalHeight = stdout?.rows ?? 24;
+  const [thoughtText, setThoughtText] = useState<string | null>(null);
+  const [contextTokens, setContextTokens] = useState<number | null>(null);
 
   const { send, status } = useSocket({
-    onCodeStart: () => {
+    onThinking: () => {
       setIsStreaming(true);
-      setStreamingCode("");
     },
-    onCodeChunk: (chunk) => {
-      setStreamingCode((prev) => prev + chunk);
+    onThought: (text) => {
+      setThoughtText(text);
     },
-    onCodeEnd: (code) => {
-      setMessages((prev) => [
-        ...prev,
-        { id: `code-${Date.now()}`, type: "code", content: code },
-      ]);
-      setStreamingCode("");
-    },
-    onExecResult: (output, error) => {
-      if (output || error) {
+    onResult: (output) => {
+      if (output) {
         setMessages((prev) => [
           ...prev,
-          {
-            id: `result-${Date.now()}`,
-            type: error ? "error" : "result",
-            content: output || error || "",
-          },
+          { id: nextId("result"), type: "result", content: output },
         ]);
       }
       setIsStreaming(false);
+      setThoughtText(null);
     },
     onError: (message) => {
       setMessages((prev) => [
         ...prev,
-        { id: `error-${Date.now()}`, type: "error", content: message },
+        { id: nextId("error"), type: "error", content: message },
       ]);
       setIsStreaming(false);
+      setThoughtText(null);
+    },
+    onContextTokens: (count) => {
+      setContextTokens(count);
+    },
+    onCall: (name, args) => {
+      // Format: name(args) - truncate long args
+      const argsDisplay = args.length > 60 ? args.slice(0, 60) + "..." : args;
+      setMessages((prev) => [
+        ...prev,
+        { id: nextId("call"), type: "call", content: `${name}(${argsDisplay})` },
+      ]);
     },
     onConnect: () => setConnected(true),
     onDisconnect: () => {
@@ -81,7 +84,7 @@ export function App() {
 
       setMessages((prev) => [
         ...prev,
-        { id: `user-${Date.now()}`, type: "user", content: value },
+        { id: nextId("user"), type: "user", content: value },
       ]);
       setInputValue("");
       send({ type: "chat", content: value });
@@ -99,42 +102,36 @@ export function App() {
   if (!connected) {
     return (
       <Box flexDirection="column" padding={1}>
-        <Text color="yellow">Connecting to server...</Text>
-        {status === "error" && (
-          <Text color="red">
-            Failed to connect. Start the server first: bun run server
-          </Text>
+        <Text color="magenta" bold>bund</Text>
+        {status === "error" ? (
+          <Box flexDirection="column">
+            <Box>
+              <Text color="red" bold>✗ </Text>
+              <Text color="red">Failed to connect to server</Text>
+            </Box>
+            <Text dimColor>  Run: bun run server</Text>
+          </Box>
+        ) : (
+          <Box>
+            <Spinner color="blue" />
+            <Text dimColor>connecting...</Text>
+          </Box>
         )}
       </Box>
     );
   }
 
   return (
-    <Box flexDirection="column" height={terminalHeight}>
-      {/* Messages area - takes remaining space */}
-      <Box flexDirection="column" flexGrow={1} overflow="hidden">
-        <MessageList
-          messages={messages}
-          streamingCode={streamingCode}
-          maxHeight={terminalHeight - 4}
-        />
-      </Box>
-
-      {/* Input area - fixed at bottom */}
-      <Box
-        flexDirection="column"
-        borderStyle="single"
-        borderColor="gray"
-        paddingX={1}
-      >
-        <InputArea
-          value={inputValue}
-          onChange={setInputValue}
-          onSubmit={handleSubmit}
-          disabled={isStreaming}
-          placeholder={isStreaming ? "thinking..." : "message"}
-        />
-      </Box>
+    <Box flexDirection="column">
+      <MessageList messages={messages} isStreaming={isStreaming} thoughtText={thoughtText} />
+      <InputArea
+        value={inputValue}
+        onChange={setInputValue}
+        onSubmit={handleSubmit}
+        disabled={isStreaming}
+        placeholder={isStreaming ? "thinking..." : "message"}
+        contextTokens={contextTokens}
+      />
     </Box>
   );
 }

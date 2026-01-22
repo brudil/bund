@@ -8,11 +8,12 @@ import {
 } from "../../shared/protocol.js";
 
 interface SocketCallbacks {
-  onCodeStart?: () => void;
-  onCodeChunk?: (chunk: string) => void;
-  onCodeEnd?: (code: string) => void;
-  onExecResult?: (output: string, error?: string) => void;
+  onThinking?: () => void;
+  onThought?: (text: string) => void;
+  onResult?: (output: string) => void;
   onError?: (message: string) => void;
+  onContextTokens?: (count: number) => void;
+  onCall?: (name: string, args: string) => void;
   onConnect?: () => void;
   onDisconnect?: () => void;
 }
@@ -31,20 +32,23 @@ export function useSocket(callbacks: SocketCallbacks) {
   const handleMessage = useCallback((msg: ServerMessage) => {
     const cbs = callbacksRef.current;
     switch (msg.type) {
-      case "code_start":
-        cbs.onCodeStart?.();
+      case "thinking":
+        cbs.onThinking?.();
         break;
-      case "code_chunk":
-        cbs.onCodeChunk?.(msg.content);
+      case "thought":
+        cbs.onThought?.(msg.text);
         break;
-      case "code_end":
-        cbs.onCodeEnd?.(msg.code);
-        break;
-      case "exec_result":
-        cbs.onExecResult?.(msg.output, msg.error);
+      case "result":
+        cbs.onResult?.(msg.output);
         break;
       case "error":
         cbs.onError?.(msg.message);
+        break;
+      case "context_tokens":
+        cbs.onContextTokens?.(msg.count);
+        break;
+      case "call":
+        cbs.onCall?.(msg.name, msg.args);
         break;
     }
   }, []);
