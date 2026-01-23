@@ -159,7 +159,9 @@ Within Bun your TypeScript thoughts are executed within a Harness which provides
 ## State
 
 Your context shows "Current State" with:
-- conversation[] - User messages
+- conversation[] - Full conversation history with {role, content} objects:
+  - role: "user" = user messages
+  - role: "assistant" = your previous code/responses
 - Variables with serialized values (or placeholders for hidden ones)
 - Functions as type signatures (use Source.show() for full code)
 

@@ -239,11 +239,15 @@ async function handleChat(socket: Socket<unknown>, content: string) {
         return;
       } else if (result.yieldType === 'execution') {
         log("Agent yielded execution, continuing agentic loop");
+        // Track the executed code so agent sees what it did on next iteration
+        materializer.addAssistantMessage(code);
         // Continue outer agentic loop (explicit)
         break;
       } else {
         // Neither called - auto-continue (could warn in future)
         log("Agent did not call Control method, auto-continuing");
+        // Track the executed code so agent sees what it did
+        materializer.addAssistantMessage(code);
         break;
       }
     }

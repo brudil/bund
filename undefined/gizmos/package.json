@@ -1,0 +1,9 @@
+{
+  "name": "bund-gizmos",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "react": "latest",
+    "ink": "latest"
+  }
+}
